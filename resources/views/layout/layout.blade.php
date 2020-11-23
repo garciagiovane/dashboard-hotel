@@ -7,11 +7,16 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>@yield('pageTitle', 'Hotel')</title>
 
-    <!-- Scripts -->
+    @env('production')
     <script src="{{ asset('js/app.js') }}" defer></script>
+    <link href="{{ secure_asset('css/app.css') }}" rel="stylesheet">
+    @endenv
 
-    <!-- Styles -->
+    @env('dev')
+    <script src="{{ asset('js/app.js') }}" defer></script>
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
+    @endenv
+
 </head>
 
 <body>
