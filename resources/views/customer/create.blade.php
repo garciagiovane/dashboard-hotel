@@ -3,13 +3,40 @@
 @section('title', 'Importação de clientes')
 
 @section('show')
-    @isset($hasError)
-        <div>{{ $errorMessage }}</div>
+
+    <div class="alert alert-success">
+        <h3>Importação de clientes</h3>
+    </div>
+
+    @isset($failures)
+        <div class="alert alert-danger">
+            <ul class="list-group">
+                @foreach ($failures as $failure)
+                    <li class="list-group-item">
+                        {{ $failure }}
+                    </li>
+                @endforeach
+            </ul>
+        </div>
     @endisset
+
+    @isset($message)
+        <div class="alert alert-success">
+            {{ $message }}
+        </div>
+    @endisset
+
     <form method="POST" action="/customers" enctype='multipart/form-data'>
         @csrf
-        <input type="text" name="name" id="name">
-        <input type="file" name="clientes-csv">
-        <input type="submit" value="Cadastrar">
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text">Arquivo CSV para importação</span>
+            </div>
+            <div class="custom-file">
+                <input type="file" name="clientes-csv" class="form-control-file" id="inputGroupFile01">
+            </div>
+        </div>
+
+        <input type="submit" class="btn btn-primary" value="Cadastrar">
     </form>
 @endsection

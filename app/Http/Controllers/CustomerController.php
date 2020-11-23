@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Customer;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 define('VIEW_CREATE', 'customer.create');
@@ -17,7 +18,7 @@ class CustomerController extends Controller
      */
     public function index()
     {
-        return Customer::all();
+        //
     }
 
     /**
@@ -38,21 +39,19 @@ class CustomerController extends Controller
      */
     public function store(Request $request)
     {
-
         $file = $request->file('clientes-csv');
 
         if ($file !== null) {
             $filename = $file->getClientOriginalName();
             $extension = $file->getClientOriginalExtension();
-            $tempPath = $file->getRealPath();
-            $fileSize = $file->getSize();
-            $mimeType = $file->getMimeType();
-
 
             $valid_extension = array("csv");
 
-            // 2MB in Bytes
-            $maxFileSize = 2097152;
+            if (!in_array($extension, $valid_extension)) {
+                return view(VIEW_CREATE, [
+                    'failures' => ['Formato do arquivo não suportado']
+                ]);
+            }
 
             $location = 'uploads';
             $file->move($location, $filename);
@@ -62,7 +61,6 @@ class CustomerController extends Controller
             $file = fopen($filePath, 'r');
             $i = 0;
             $importData_arr = array();
-
 
             while (($filedata = fgetcsv($file, 1000, ",")) !== FALSE) {
                 $num = count($filedata);
@@ -78,32 +76,52 @@ class CustomerController extends Controller
                 }
                 $i++;
             }
-            
+
             fclose($file);
+            $failures = [];
 
             foreach ($importData_arr as $importData) {
-                $customer = new Customer;
 
-                $customer->name = $importData[0];
-                $customer->cpf = $importData[1];
-                $customer->phone = $importData[2];
-                $customer->zipCode = $importData[3];
-                $customer->status = strtoupper($importData[4]);
+                $cpf = $importData[1];
+                $name = $importData[0];
+                $phone = $importData[2];
+                $zipcode = $importData[3];
+                $status = strtoupper($importData[4]);
 
-                $customer->save();
+                if (strlen($cpf) == 11) {
+                    $customer = new Customer;
+
+                    $customer->name = $name;
+                    $customer->cpf = $cpf;
+                    $customer->phone = $phone;
+                    $customer->zipCode = $zipcode;
+                    $customer->status = strtoupper($status);
+
+                    try {
+                        $customer->save();
+                    } catch (\Throwable $th) {
+                        array_push($failures, 'Cliente ' . $name . ' não cadastrado, motivo: falha na persistência');
+                    }
+                } else {
+                    array_push($failures, 'Cliente ' . $name . ' não cadastrado, motivo: CPF inválido');
+                }
+            }
+
+            if (sizeof($failures) > 0) {
+                return view(VIEW_CREATE, [
+                    'failures' => $failures
+                ]);
             }
 
             return view(VIEW_CREATE, [
-                'message' => 'Cliente cadastrado com suesso'
+                'message' => 'Clientes cadastrados com sucesso'
             ]);
         }
 
         return view(VIEW_CREATE, [
-            'hasError' => true,
-            'errorMessage' => 'Não foi possível carregar a base de clientes'
+            'failures' => ['Não foi possível carregar o arquivo de clientes']
         ]);
     }
-
 
     /**
      * Display the specified resource.
@@ -113,21 +131,7 @@ class CustomerController extends Controller
      */
     public function show($id)
     {
-        $error = null;
-        $customer = null;
-        try {
-            $customer = Customer::find($id);
-        } catch (\Throwable $th) {
-            $error = [
-                'message' => $th->getMessage(),
-                'errorCode' => $th->getCode()
-            ];
-        }
-
-        return view('customer.show-by-id', [
-            'customer' => $customer,
-            'error' => $error
-        ]);
+        //
     }
 
     /**
