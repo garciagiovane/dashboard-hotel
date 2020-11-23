@@ -8,20 +8,29 @@
             Reservas
         </h3>
     </div>
-    @isset($errors)
 
-        @if (sizeof($errors) > 0)
-            <div class="alert alert-danger">
-                <ul>
-                    @foreach ($errors as $err)
-                        <li>{{ $err }}</li>
-                    @endforeach
-                </ul>
-                <hr>
-                <p class="mb-0"><a class="alert-link" href="/reservations/create">Tente reservar novamente</a></p>
-            </div>
-        @endif
+    @if ($errors->any())
+        <div class="alert alert-danger">
+            <ul class="list-group">
+                @foreach ($errors->all() as $err)
+                    <li class="list-group-item">{{ $err }}</li>
+                @endforeach
+            </ul>
+            <hr>
+            <p class="mb-0"><a class="alert-link" href="/reservations/create">Tente reservar novamente</a></p>
+        </div>
+    @endif
 
+    @isset($failures)
+        <div class="alert alert-danger">
+            <ul class="list-group">
+                @foreach ($failures as $err)
+                    <li class="list-group-item">{{ $err }}</li>
+                @endforeach
+            </ul>
+            <hr>
+            <p class="mb-0"><a class="alert-link" href="/reservations/create">Tente reservar novamente</a></p>
+        </div>
     @endisset
 
     @isset($reservation)
@@ -74,13 +83,13 @@
                                     <div class="form-group">
                                         <label for="cpf">CPF cliente</label>
                                         <input type="number" class="form-control" name="cpf" id="cpf"
-                                            placeholder="Ex: 12345678912" required>
+                                            placeholder="Ex: 12345678912" required autocomplete="off">
                                     </div>
 
                                     <div class="form-group">
                                         <label for="dias">Dias de reserva</label>
                                         <input type="number" class="form-control" name="dias" id="dias" placeholder="Ex: 1"
-                                            required>
+                                            required autocomplete="off">
                                     </div>
                                     @if (sizeof($quarto->servicos) > 0)
                                         <div id="servicos">

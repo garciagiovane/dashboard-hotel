@@ -8,6 +8,17 @@
             Cadastro de quartos
         </h3>
     </div>
+
+    @if ($errors->any())
+        <div class="alert alert-danger">
+            <ul class="list-group">
+                @foreach ($errors->all() as $err)
+                    <li class="list-group-item"> {{ $err }} </li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     @isset($error)
         @if ($error)
             <div class="alert alert-danger">
@@ -24,7 +35,8 @@
         @csrf
         <div class="form-group">
             <label for="andar">Andar</label>
-            <input type="number" class="form-control" name="andar" id="andar" placeholder="Ex: 1" required>
+            <input type="number" class="form-control" name="andar" id="andar" placeholder="Ex: 1" required
+                autocomplete="off">
         </div>
 
         <div class="form-group ">
@@ -33,7 +45,8 @@
                 <div class="input-group-prepend">
                     <span class="input-group-text">R$</span>
                 </div>
-                <input type="number" class="form-control" name="valorDiaria" id="valorDiaria" placeholder="Ex: 10" required>
+                <input type="number" class="form-control" name="valorDiaria" id="valorDiaria" placeholder="Ex: 10" required
+                    autocomplete="off">
                 <div class="input-group-append">
                     <span class="input-group-text">,00</span>
                 </div>

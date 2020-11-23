@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CriacaoServico;
 use App\Models\Servico;
 use Illuminate\Http\Request;
 
@@ -47,23 +48,23 @@ class ServicoController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(CriacaoServico $request)
     {
+        $request->validated();
+
         $servico = new Servico;
-        $servico->descricao = $request->descricao;
-        $servico->valor_unitario = $request->valorUnitario;
-        $servico->status = $request->status;
+        $servico->descricao = $request->input('descricao');
+        $servico->valor_unitario = $request->input('valorUnitario');
+        $servico->status = $request->input('status');
 
         try {
             $servico->save();
             return view(VIEW_CREATE, [
-                'error' => false,
                 'servico' => $servico
             ]);
         } catch (\Throwable $th) {
             return view(VIEW_CREATE, [
-                'error' => true,
-                'message' => 'Erro ao salvar o serviço'
+                'failures' => ['Erro ao salvar o serviço']
             ]);
         }
     }

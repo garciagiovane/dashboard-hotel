@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CriacaoReserva;
 use App\Models\Customer;
 use App\Models\Quarto;
 use App\Models\Reservation;
@@ -10,6 +11,8 @@ use DateInterval;
 use DateTime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 
 define('CREATE_RESERVATION_VIEW', 'reservation.create');
 define('CREATE_CHECKIN_VIEW', 'reservation.checkin');
@@ -38,6 +41,7 @@ class ReservationController extends Controller
     public function create()
     {
         $quartosAtivos = Quarto::all();
+        $quartosAtivosTrue = array();
 
         foreach ($quartosAtivos as $quarto) {
             if ($quarto->status == 'RESERVADO' && isset($quarto->data_prevista_checkin)) {
@@ -50,11 +54,7 @@ class ReservationController extends Controller
                     Quarto::liberarQuarto($quarto);
                 }
             }
-        }
 
-        $quartosAtivosTrue = array();
-
-        foreach ($quartosAtivos as $quarto) {
             if ($quarto->status == 'ATIVO') {
                 array_push($quartosAtivosTrue, $quarto);
             }
@@ -66,8 +66,7 @@ class ReservationController extends Controller
             ]);
         } else {
             return view(CREATE_RESERVATION_VIEW, [
-                'error' => true,
-                'message' => 'Não há quartos disponíveis'
+                'failures' => ['Não há quartos disponíveis']
             ]);
         }
     }
@@ -88,16 +87,15 @@ class ReservationController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(CriacaoReserva $request)
     {
+        $request->validated();
+
         $inputServicos = $request->input('servico');
+        $diasReserva = $request->input('dias');
+
         $servicos = array();
         $errors = array();
-
-        $diasReserva = $request->input('dias');
-        if ($diasReserva == null) {
-            array_push($errors, 'Quantidade de dias da reserva deve ser selecionada');
-        }
 
         if ($inputServicos != null) {
             foreach ($inputServicos as $serviceCode) {
@@ -122,9 +120,8 @@ class ReservationController extends Controller
 
         if (sizeof($errors) > 0) {
             return view(CREATE_RESERVATION_VIEW, [
-                'error' => true,
                 'message' => 'Não foi possível realizar a reserva',
-                'errors' => $errors
+                'failures' => $errors
             ]);
         }
 
@@ -160,9 +157,8 @@ class ReservationController extends Controller
             ]);
         } catch (\Throwable $th) {
             return view(CREATE_RESERVATION_VIEW, [
-                'error' => true,
                 'message' => 'Ocorreu um erro ao criar a reserva ' . $th->getMessage(),
-                'errors' => array('Ocorreu um erro ao criar a reserva ', $th->getMessage())
+                'failures' => ['Ocorreu um erro ao criar a reserva ', $th->getMessage()]
             ]);
         }
     }
@@ -224,18 +220,32 @@ class ReservationController extends Controller
         return view('reservation.checkin');
     }
 
+    private function getDoCheckinValidator(Request $request)
+    {
+        return $this->getValidator($request, [
+            'reserva' => 'required|numeric|min:1'
+        ], [
+            'required' => ':attribute é obrigatório',
+            'numeric' => ':attribute deve ser numérico',
+            'min' => 'Número da reserva deve ser maior que zero'
+        ]);
+    }
+
+    private function getValidator(Request $request, $rules, $messages)
+    {
+        return Validator::make(
+            $request->all(),
+            $rules,
+            $messages
+        );
+    }
+
     public function docheckin(Request $request)
     {
+        $this->getDoCheckinValidator($request)->validate();
+
         $idReserva = $request->input('reserva');
-
         $errors = array();
-
-        if ($idReserva == null) {
-            array_push($errors, 'O código da reserva é obrigatório!');
-            return view(CREATE_CHECKIN_VIEW, [
-                'errors' => $errors
-            ]);
-        }
 
         $reservation = Reservation::find($idReserva);
 
@@ -253,7 +263,7 @@ class ReservationController extends Controller
 
         if (sizeof($errors) > 0) {
             return view(CREATE_CHECKIN_VIEW, [
-                'errors' => $errors
+                'failures' => $errors
             ]);
         }
 
@@ -277,15 +287,10 @@ class ReservationController extends Controller
 
     public function docheckout(Request $request)
     {
+        $this->getDoCheckinValidator($request)->validate();
         $reserva = $request->input('reserva');
-        $errors = array();
 
-        if ($reserva == null) {
-            array_push($errors, 'O código da reserva é obrigatório!');
-            return view(CREATE_CHECKOUT_VIEW, [
-                'errors' => $errors
-            ]);
-        }
+        $errors = array();
 
         $reservation = Reservation::find($reserva);
 
@@ -303,7 +308,7 @@ class ReservationController extends Controller
 
         if (sizeof($errors) > 0) {
             return view(CREATE_CHECKOUT_VIEW, [
-                'errors' => $errors
+                'failures' => $errors
             ]);
         }
 

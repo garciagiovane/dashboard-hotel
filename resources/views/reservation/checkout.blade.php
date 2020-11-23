@@ -14,20 +14,27 @@
         </h3>
     </div>
 
-    @isset($errors)
-        @if (sizeof($errors) > 0)
-            <div class="alert alert-danger">
-                <ul class="list-group">
-                    @foreach ($errors as $err)
-                        <li class="list-group-item">{{ $err }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
+    @if ($errors->any())
+        <div class="alert alert-danger">
+            <ul class="list-group">
+                @foreach ($errors->all() as $err)
+                    <li class="list-group-item">{{ $err }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    @isset($failures)
+        <div class="alert alert-danger">
+            <ul class="list-group">
+                @foreach ($failures as $err)
+                    <li class="list-group-item">{{ $err }}</li>
+                @endforeach
+            </ul>
+        </div>
     @endisset
 
     @isset($reservation)
-
         <div id="mensagem-reserva" class="alert alert-success">
             <p>
                 {{ $message }}
@@ -113,7 +120,6 @@
                     });
                 }
             }).render("#paypal-button-container");
-
         </script>
     @endisset
 @endsection

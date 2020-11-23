@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CriacaoQuarto;
 use App\Models\Quarto;
 use App\Models\Servico;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 define('VIEW_CREATE', 'quarto.create');
 define('VIEW_LISTAR', 'quarto.listar');
@@ -31,7 +33,7 @@ class QuartoController extends Controller
      */
     public function create()
     {
-        $servicos = Servico::where('status', 'ATIVO')->get();
+        $servicos = Servico::all()->where('status', 'ATIVO');
 
         return view(VIEW_CREATE, [
             'servicos' => $servicos
@@ -44,11 +46,13 @@ class QuartoController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(CriacaoQuarto $request)
     {
+        $request->validated();
+
         $quarto = new Quarto;
-        $quarto->andar = $request->andar;
-        $quarto->status = strtoupper($request->status);
+        $quarto->andar = $request->input('andar');
+        $quarto->status = strtoupper($request->input('status'));
         $valorDiaria = $request->input('valorDiaria');
         $quarto->valor_diaria = $valorDiaria;
 

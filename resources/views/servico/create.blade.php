@@ -8,20 +8,31 @@
             Cadastro de serviços
         </h3>
     </div>
-    @isset($error)
-        @if ($error)
-            <div class="alert alert-danger">
-                <p> {{ $message }} </p>
-            </div>
-        @else
-            <div class="alert alert-success">
-                <h4>Serviço cadastrado com sucesso</h4>
-                <span class="badge badge-success">Código: </span> {{ $servico->id }}
-                <span class="badge badge-success">Descrição: </span> {{ $servico->descricao }}
-                <span class="badge badge-success">Valor unitário: </span> {{ $servico->valor_unitario }}
-                <span class="badge badge-success">Status: </span> {{ $servico->status }}
-            </div>
-        @endif
+
+    @if ($errors->any())
+        <div class="alert alert-danger">
+            <ul class="list-group">
+                @foreach ($errors->all() as $err)
+                    <li class="list-group-item"> {{ $err }} </li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    @isset($failures)
+        <div class="alert alert-danger">
+            <ul class="list-group">
+                @foreach ($failures as $failure)
+                    <li class="list-group-item"> {{ $failure }} </li>
+                @endforeach
+            </ul>
+        </div>
+    @endisset
+
+    @isset($servico)
+        <div class="alert alert-success">
+            <p>Serviço cadastrado com sucesso</p>
+        </div>
     @endisset
 
     <form action="/servicos" method="post">
@@ -29,7 +40,7 @@
         <div class="form-group">
             <label for="descricao">Descrição</label>
             <input type="text" class="form-control" name="descricao" id="descricao" placeholder="Ex: Ar condicionado"
-                required>
+                required autocomplete="off">
         </div>
 
         <div class="form-group ">
@@ -38,8 +49,8 @@
                 <div class="input-group-prepend">
                     <span class="input-group-text">R$</span>
                 </div>
-                <input type="text" class="form-control" name="valorUnitario" id="valorUnitario" placeholder="Valor unitário"
-                    required>
+                <input type="number" class="form-control" name="valorUnitario" id="valorUnitario"
+                    placeholder="Valor unitário" required autocomplete="off">
                 <div class="input-group-append">
                     <span class="input-group-text">,00</span>
                 </div>
