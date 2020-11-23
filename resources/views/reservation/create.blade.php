@@ -35,7 +35,7 @@
         </div>
     @endisset
 
-    @isset($quartos)
+    @if (isset($quartos))
         <div class="row">
             @foreach ($quartos as $quarto)
                 <div class="col-sm-6">
@@ -114,7 +114,11 @@
                 </div>
             @endforeach
         </div>
-    @endisset
+    @else
+        <div class="alert alert-danger">
+            <p>Não há quartos disponíveis</p>
+        </div>
+    @endif
     <style>
         .hide {
             display: none

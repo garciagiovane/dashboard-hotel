@@ -22,7 +22,7 @@
 
                         <div class="card-body">
                             <h4>
-                                <span class="badge badge-success">Código</span> 
+                                <span class="badge badge-success">Código</span>
                                 <span style="font-size: 1.125rem">{{ $servico->id }}</span>
                             </h4>
 
@@ -41,9 +41,11 @@
             @endforeach
         </div>
     @else
-        <p>
-            Não há serviços disponíveis
-        </p>
+        <div class="alert alert-danger">
+            <p>
+                Não há serviços disponíveis
+            </p>
+        </div>
     @endif
 
 @endsection
