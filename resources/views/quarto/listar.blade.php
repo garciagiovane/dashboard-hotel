@@ -22,7 +22,8 @@
                             </div>
                             <div class="card-body">
                                 <h4>
-                                    <span class="badge badge-success">Andar</span> <span style="font-size: 1.125rem">{{ $quarto->andar }}</span>
+                                    <span class="badge badge-success">Andar</span> <span
+                                        style="font-size: 1.125rem">{{ $quarto->andar }}</span>
                                 </h4>
 
                                 <h4>
@@ -49,9 +50,11 @@
                 @endforeach
             </div>
         @else
-            <p>
-                Não há quartos disponíveis
-            </p>
+            <div class="alert alert-danger">
+                <p>
+                    Não há quartos disponíveis
+                </p>
+            </div>
         @endif
     @endisset
 @endsection
