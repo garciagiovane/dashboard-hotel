@@ -13,7 +13,12 @@
             <ul class="list-group">
                 @foreach ($failures as $failure)
                     <li class="list-group-item">
-                        {{ $failure }}
+                        Clinte {{ $failure->name }} não importado pelos seguintes motivos
+                        <ul class="list-group">
+                            @foreach ($failure->errors as $err)
+                                <li class="list-group-item"> {{ $err }} </li>
+                            @endforeach
+                        </ul>
                     </li>
                 @endforeach
             </ul>
