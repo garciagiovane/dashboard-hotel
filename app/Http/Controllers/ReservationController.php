@@ -11,7 +11,6 @@ use DateInterval;
 use DateTime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 define('CREATE_RESERVATION_VIEW', 'reservation.create');
@@ -140,7 +139,6 @@ class ReservationController extends Controller
         try {
             $reservation->save();
             $quarto->reservation_id = $reservation->id;
-            Log::info($reservation);
             $quarto->save();
 
             if ($quantiadeServicos > 0) {
