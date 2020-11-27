@@ -36,24 +36,33 @@
 
     @isset($reservation)
         <div id="mensagem-reserva" class="alert alert-success">
-            <p>
-                {{ $message }}
-            </p>
+            <p>{{ $message }}</p>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <h3>Resumo da reserva {{ $reservation->id }}</h3>
+            </div>
+            <div class="card-body">
+                <h4><span class="badge badge-info">Valor total: </span> R$ {{ $reservation->total_reserva }}</h4>
+                <h4><span class="badge badge-info">Quarto: </span> {{ $reservation->quarto_id }}</h4>
+            </div>
         </div>
     @endisset
 
-    <form action="/reservations/checkout" method="post">
-        @csrf
-        @method('PATCH')
-        <div class="form-group">
-            <label for="reserva">Número da reserva</label>
-            <input type="number" class="form-control" name="reserva" placeholder="Ex: 1" required>
-        </div>
+    @if (!isset($reservation))
+        <form action="/reservations/checkout" method="post">
+            @csrf
+            @method('PATCH')
+            <div class="form-group">
+                <label for="reserva">Número da reserva</label>
+                <input type="number" class="form-control" name="reserva" placeholder="Ex: 1" required>
+            </div>
 
-        <div class="btn-group">
-            <button type="submit" class="btn btn-primary">Fazer check-out</button>
-        </div>
-    </form>
+            <div class="btn-group">
+                <button type="submit" class="btn btn-primary">Fazer check-out</button>
+            </div>
+        </form>
+    @endif
 
     @isset($reservation)
         <div class="card">
@@ -120,6 +129,7 @@
                     });
                 }
             }).render("#paypal-button-container");
+
         </script>
     @endisset
 @endsection

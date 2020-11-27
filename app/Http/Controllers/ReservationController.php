@@ -140,6 +140,7 @@ class ReservationController extends Controller
         try {
             $reservation->save();
             $quarto->reservation_id = $reservation->id;
+            Log::info($reservation);
             $quarto->save();
 
             if ($quantiadeServicos > 0) {
@@ -291,7 +292,6 @@ class ReservationController extends Controller
         $reserva = $request->input('reserva');
 
         $errors = array();
-
         $reservation = Reservation::find($reserva);
 
         if ($reservation != null) {
@@ -312,7 +312,13 @@ class ReservationController extends Controller
             ]);
         }
 
+        $dataCheckout = new DateTime();
+        $response = $dataCheckout->diff(new DateTime($reservation->data_checkin));
+        $diasReserva = $response->d < 1 ? 1 : $response->d;
+        $reservation->dias = $diasReserva;
         $quarto = Quarto::find($reservation->quarto_id);
+
+        $reservation->total_reserva = $reservation->dias * $quarto->valor_diaria;
 
         $reservation->status = 'AGUARDANDO_PAGAMENTO';
         Quarto::liberarQuarto($quarto);
@@ -329,7 +335,7 @@ class ReservationController extends Controller
         }
 
         $reservation->total_reserva = $total;
-        $reservation->data_checkout = new DateTime();
+        $reservation->data_checkout = $dataCheckout;
         $reservation->save();
 
         return view(CREATE_CHECKOUT_VIEW, [
