@@ -3,6 +3,16 @@
 @section('pageTitle', 'Consulta de quartos')
 
 @section('show')
+    @isset($failures)
+        <div class="alert alert-danger">
+            <ul class="list-group">
+                @foreach ($failures as $failure)
+                    <li class="list-group-item">{{ $failure }}</li>
+                @endforeach
+            </ul>
+
+        </div>
+    @endisset
     @isset($quartosAtivos)
         @if (sizeof($quartosAtivos))
             <div class="alert alert-success">

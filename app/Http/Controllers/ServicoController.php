@@ -19,7 +19,7 @@ class ServicoController extends Controller
     public function index()
     {
         try {
-            $servicosAtivos = Servico::all()->where('status', 'ativo');
+            $servicosAtivos = Servico::all()->where('status', 'ATIVO');
             return view(VIEW_LISTAR, [
                 'error' => false,
                 'servicosAtivos' => $servicosAtivos
