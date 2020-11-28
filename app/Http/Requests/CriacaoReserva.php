@@ -25,7 +25,8 @@ class CriacaoReserva extends FormRequest
     {
         return [
             'servico' => 'nullable',
-            'dias' => 'required|numeric|min:1',
+            'data-checkin' => 'required',
+            'data-checkout' => 'required',
             'quartoId' => 'required|numeric|min:1',
             'cpf' => 'required|string|size:11'
         ];

@@ -9,8 +9,10 @@ use App\Models\Reservation;
 use App\Models\Servico;
 use DateInterval;
 use DateTime;
+use DateTimeZone;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 define('CREATE_RESERVATION_VIEW', 'reservation.create');
@@ -19,7 +21,7 @@ define('CREATE_CHECKOUT_VIEW', 'reservation.checkout');
 define('AGUARDANDO', 'AGUARDA_CONFIRMACAO');
 define('PAYMENT_VIEW', 'reservation.payment');
 define('ATIVO', 'ATIVO');
-
+define('REGIAO_BRASIL', 'America/Sao_Paulo');
 class ReservationController extends Controller
 {
     /**
@@ -89,12 +91,32 @@ class ReservationController extends Controller
     public function store(CriacaoReserva $request)
     {
         $request->validated();
+        $dataAtual = new DateTime('now', new DateTimeZone(REGIAO_BRASIL));
 
         $inputServicos = $request->input('servico');
-        $diasReserva = $request->input('dias');
 
         $servicos = array();
         $errors = array();
+
+        $dataCheckin = $request->input('data-checkin');
+
+        $dateTimeCheckin = DateTime::createFromFormat('Y-m-d\TH:i', $dataCheckin, new DateTimeZone(REGIAO_BRASIL));
+        $dateTimeCheckin->add(new DateInterval('PT' . 5 . 'M'));
+        if ($dataCheckin == null || $dateTimeCheckin < $dataAtual) {
+            array_push($errors, 'Data check-in inválida');
+        }
+
+        $dataCheckout = $request->input('data-checkout');
+        $dateTimeCheckout = DateTime::createFromFormat('Y-m-d\TH:i', $dataCheckout, new DateTimeZone(REGIAO_BRASIL));
+        $dateTimeCheckout->add(new DateInterval('PT' . 5 . 'M'));
+        if ($dataCheckin == null || $dateTimeCheckout < $dataAtual) {
+            array_push($errors, 'Data check-out inválida');
+        }
+        $dateDiff = $dateTimeCheckout->diff($dateTimeCheckin)->days;
+        $diasReserva = $dateDiff < 1 ? 1 : $dateDiff;
+        if ($dateTimeCheckout < $dateTimeCheckin) {
+            array_push($errors, 'Checkout não pode ser antes do checkin');
+        }
 
         if ($inputServicos != null) {
             foreach ($inputServicos as $serviceCode) {
@@ -124,6 +146,9 @@ class ReservationController extends Controller
             ]);
         }
 
+        $dateDiff = $dateTimeCheckout->diff($dateTimeCheckin)->days;
+        $diasReserva = $dateDiff < 1 ? 1 : $dateDiff;
+
         $reservation = new Reservation;
         $reservation->customer_id = $cliente->id;
         $reservation->quarto_id = $quarto->id;
@@ -132,7 +157,7 @@ class ReservationController extends Controller
         $reservation->status = AGUARDANDO;
 
         $quarto->status = 'RESERVADO';
-        $dataEsperadaCheckin = new DateTime();
+        $dataEsperadaCheckin = $dataAtual;
         $quarto->data_prevista_checkin = $dataEsperadaCheckin->add(new DateInterval('P1D'));
         $quantiadeServicos = sizeof($servicos);
 
@@ -261,7 +286,7 @@ class ReservationController extends Controller
                 $quarto->status = 'OCUPADO';
                 $quarto->save();
 
-                $reservation->data_checkin = new DateTime();
+                $reservation->data_checkin = new DateTime('now', new DateTimeZone(REGIAO_BRASIL));
                 $reservation->status = 'CONFIRMADA';
                 $reservation->save();
 
@@ -343,7 +368,7 @@ class ReservationController extends Controller
             return view(CREATE_CHECKOUT_VIEW, ['failures' => ['Reserva já encerrada']]);
         }
 
-        $dataCheckout = new DateTime();
+        $dataCheckout = new DateTime('now', new DateTimeZone(REGIAO_BRASIL));
         $response = $dataCheckout->diff(new DateTime($reservation->data_checkin));
         $diasReserva = $response->d < 1 ? 1 : $response->d;
         $reservation->dias = $diasReserva;

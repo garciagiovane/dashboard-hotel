@@ -83,12 +83,18 @@
                                             <label for="cpf">CPF cliente</label>
                                             <input type="number" class="form-control" name="cpf" id="cpf"
                                                 placeholder="Ex: 12345678912" required autocomplete="off">
+                                        </div>  
+
+                                        <div class="form-group">
+                                            <label for="data-checkin">Entrada</label>
+                                            <input type="datetime-local" class="form-control data-checkin"
+                                                name="data-checkin" id={{ 'data-checkin-' . $quarto->id }}>
                                         </div>
 
                                         <div class="form-group">
-                                            <label for="dias">Dias de reserva</label>
-                                            <input type="number" class="form-control" name="dias" id="dias"
-                                                placeholder="Ex: 1" required autocomplete="off">
+                                            <label for="data-checkout">Saída</label>
+                                            <input type="datetime-local" class="form-control" name="data-checkout"
+                                                id={{ 'data-checkout' . $quarto->id }}>
                                         </div>
                                         @if (sizeof($quarto->servicos) > 0)
                                             <div id="servicos">
@@ -114,8 +120,7 @@
                                     <div class="btn-group mr-2">
                                         <button type="button" id={{ 'btn-reserva-' . $quarto->id }}
                                             onclick="mostrarCadastro(this, {{ $quarto->id }})"
-                                            class="btn btn-primary">Cadastrar
-                                            reserva</button>
+                                            class="btn btn-primary">Reservar</button>
                                     </div>
                                 </div>
                             </div>

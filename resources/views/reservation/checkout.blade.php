@@ -35,7 +35,7 @@
 
                 <div class="form-group">
                     <label for="reserva">CPF</label>
-                    <input type="number" class="form-control" name="cpf" placeholder="Ex: 11111111111" required>
+                    <input type="number" class="form-control" name="cpf" placeholder="Ex: 11111111111" required autocomplete="off">
                 </div>
 
                 <div class="btn-group">
