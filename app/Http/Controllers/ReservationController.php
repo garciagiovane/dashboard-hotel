@@ -222,11 +222,10 @@ class ReservationController extends Controller
     private function getDoCheckinValidator(Request $request)
     {
         return $this->getValidator($request, [
-            'reserva' => 'required|numeric|min:1'
+            'cpf' => 'required|string|size:11'
         ], [
             'required' => ':attribute é obrigatório',
-            'numeric' => ':attribute deve ser numérico',
-            'min' => 'Número da reserva deve ser maior que zero'
+            'size' => 'CPF inválido'
         ]);
     }
 
@@ -239,43 +238,60 @@ class ReservationController extends Controller
         );
     }
 
-    public function docheckin(Request $request)
+    public function efetuarCheckin($reserva)
     {
-        $this->getDoCheckinValidator($request)->validate();
-
-        $idReserva = $request->input('reserva');
         $errors = array();
-
-        $reservation = Reservation::find($idReserva);
-
-        if ($reservation != null) {
-            if ($reservation->status == 'CANCELADA') {
-                array_push($errors, 'Reserva cancelada');
-            }
-
-            if ($reservation->status == 'CONFIRMADA') {
-                array_push($errors, 'Reserva já foi confirmada');
-            }
+        if ($reserva == null) {
+            array_push($errors, 'Código da reserva inválido');
         } else {
-            array_push($errors, 'Reserva não encontrada');
-        }
+            $reservation = Reservation::find($reserva);
 
-        if (sizeof($errors) > 0) {
+            if ($reservation == null) {
+                array_push($errors, 'Reserva não encontrada');
+            } else if ($reservation->status != 'AGUARDA_CONFIRMACAO') {
+                array_push($errors, 'Reserva não está disponível para checkin');
+            }
+
+            if (sizeof($errors) > 0) {
+                return view(CREATE_CHECKIN_VIEW, [
+                    'failures' => $errors
+                ]);
+            } else {
+                $quarto = Quarto::find($reservation->quarto_id);
+                $quarto->status = 'OCUPADO';
+                $quarto->save();
+
+                $reservation->data_checkin = new DateTime();
+                $reservation->status = 'CONFIRMADA';
+                $reservation->save();
+
+                return view(CREATE_CHECKIN_VIEW, [
+                    'reservation' => $reservation
+                ]);
+            }
+        }
+    }
+
+    public function showReservationsCheckin(Request $request)
+    {
+        $this->getDoCheckinValidator($request)->validated();
+        $cpf = $request->input('cpf');
+
+        $reservasCliente = DB::table('reservations')
+            ->join('customers', 'reservations.customer_id', '=', 'customers.id')
+            ->select('reservations.*', 'customers.name')
+            ->where('customers.cpf',  '=', $cpf)
+            ->where('reservations.status', '=', 'AGUARDA_CONFIRMACAO')
+            ->get();
+
+        if (sizeof($reservasCliente) > 0) {
             return view(CREATE_CHECKIN_VIEW, [
-                'failures' => $errors
+                'reservations' => $reservasCliente
             ]);
         }
 
-        $quarto = Quarto::find($reservation->quarto_id);
-        $quarto->status = 'OCUPADO';
-        $quarto->save();
-
-        $reservation->data_checkin = new DateTime();
-        $reservation->status = 'CONFIRMADA';
-        $reservation->save();
-
         return view(CREATE_CHECKIN_VIEW, [
-            'reservation' => $reservation
+            'failures' => ['Nenhuma reserva disponível para checkin']
         ]);
     }
 
@@ -284,30 +300,47 @@ class ReservationController extends Controller
         return view(CREATE_CHECKOUT_VIEW);
     }
 
-    public function docheckout(Request $request)
+    function docheckout(Request $request)
     {
         $this->getDoCheckinValidator($request)->validate();
-        $reserva = $request->input('reserva');
+        $cpf = $request->input('cpf');
 
-        $errors = array();
-        $reservation = Reservation::find($reserva);
+        $reservasCliente = DB::table('reservations')
+            ->join('customers', 'reservations.customer_id', '=', 'customers.id')
+            ->select('reservations.*', 'customers.name')
+            ->where('customers.cpf',  '=', $cpf)
+            ->where('reservations.status', '=', 'CONFIRMADA')
+            ->orWhere('reservations.status', '=', 'AGUARDANDO_PAGAMENTO')
+            ->get();
 
-        if ($reservation != null) {
-            if ($reservation->status == 'ENCERRADA') {
-                array_push($errors, 'Reserva já encerrada');
-            }
-
-            if ($reservation->status == 'AGUARDANDO_PAGAMENTO') {
-                array_push($errors, 'Reserva está aguardando pagamento');
-            }
-        } else {
-            array_push($errors, 'Reserva não encontrada');
+        if (sizeof($reservasCliente) > 0) {
+            return view(CREATE_CHECKOUT_VIEW, [
+                'reservations' => $reservasCliente,
+                'message' => 'Reserva aguardando pagamento'
+            ]);
         }
 
-        if (sizeof($errors) > 0) {
+        return view(CREATE_CHECKOUT_VIEW, [
+            'failures' => ['Nenhuma reserva encontrada']
+        ]);
+    }
+
+    public function showPayment()
+    {
+        return view(PAYMENT_VIEW);
+    }
+
+    public function payment($reserva)
+    {
+        $reservation = Reservation::find($reserva);
+        if ($reservation == null) {
             return view(CREATE_CHECKOUT_VIEW, [
-                'failures' => $errors
+                'failures' => ['Reserva não encontrada']
             ]);
+        }
+
+        if ($reservation->status == 'ENCERRADA') {
+            return view(CREATE_CHECKOUT_VIEW, ['failures' => ['Reserva já encerrada']]);
         }
 
         $dataCheckout = new DateTime();
@@ -336,26 +369,19 @@ class ReservationController extends Controller
         $reservation->data_checkout = $dataCheckout;
         $reservation->save();
 
-        return view(CREATE_CHECKOUT_VIEW, [
-            'reservation' => $reservation,
-            'message' => 'Reserva aguardando pagamento'
+        return view(PAYMENT_VIEW, [
+            'reservation' => $reservation
         ]);
-    }
-
-    public function showPayment()
-    {
-        return view(PAYMENT_VIEW);
     }
 
     public function doPayment(Request $request)
     {
         $reserva = $request->input('reserva');
-
-        if ($reserva == null) {
-            return view(PAYMENT_VIEW, [
-                'errors' => array('Número da reserva é obrigatório!')
-            ]);
-        }
+        Validator::validate($request->all(), [
+            'reserva' => 'required'
+        ], [
+            'required' => ':attribute é obrigatório'
+        ]);
 
         $reservation = Reservation::find($reserva);
         $errors = array();
@@ -370,7 +396,7 @@ class ReservationController extends Controller
 
         if (sizeof($errors) > 0) {
             return view(PAYMENT_VIEW, [
-                'errors' => $errors
+                'failures' => $errors
             ]);
         }
 

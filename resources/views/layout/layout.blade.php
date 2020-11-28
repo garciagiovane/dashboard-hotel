@@ -55,7 +55,6 @@
                                 <a class="dropdown-item" href="/reservations/create">Reservar</a>
                                 <a class="dropdown-item" href="/reservations/checkin">Checkin</a>
                                 <a class="dropdown-item" href="/reservations/checkout">Checkout</a>
-                                <a class="dropdown-item" href="/reservations/payment">Pagamento</a>
                             </div>
                         </li>
                     </ul>

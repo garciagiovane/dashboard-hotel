@@ -33,10 +33,11 @@ Route::resource('quartos', QuartoController::class);
 Route::resource('servicos', ServicoController::class);
 
 Route::get('reservations/checkin', [ReservationController::class, 'showcheckin']);
-Route::patch('reservations/checkin', [ReservationController::class, 'docheckin']);
+Route::patch('reservations/checkin', [ReservationController::class, 'showReservationsCheckin']);
+Route::get('reservations/checkin/{reserva}', [ReservationController::class, 'efetuarCheckin']);
 
 Route::get('reservations/checkout', [ReservationController::class, 'showcheckout']);
 Route::patch('reservations/checkout', [ReservationController::class, 'docheckout']);
 
-Route::get('reservations/payment', [ReservationController::class, 'showPayment']);
+Route::get('reservations/payment/{reserva}', [ReservationController::class, 'payment']);
 Route::patch('reservations/payment', [ReservationController::class, 'doPayment']);

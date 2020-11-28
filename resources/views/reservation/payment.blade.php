@@ -14,49 +14,77 @@
         </h3>
     </div>
 
-    @isset($errors)
-        @if (sizeof($errors) > 0)
-            <div class="alert alert-danger">
-                <ul class="list-group">
-                    @foreach ($errors as $err)
-                        <li class="list-group-item">{{ $err }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
-    @endisset
+    @if ($errors->any())
+        <div class="alert alert-danger">
+            <ul class="list-group">
+                @foreach ($errors->all() as $err)
+                    <li class="list-group-item">{{ $err }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
 
-    @isset($reservation)
-        <div id="mensagem-reserva" class="alert alert-info">
-            <p>Pagamento da reserva {{ $reservation->id }}</p>
+    @isset($failures)
+        <div class="alert alert-danger">
+            <ul class="list-group">
+                @foreach ($failures as $err)
+                    <li class="list-group-item">{{ $err }}</li>
+                @endforeach
+            </ul>
         </div>
     @endisset
 
-    <form action="/reservations/payment" method="post">
-        @csrf
-        @method('PATCH')
-        <div class="form-group">
-            <label for="reserva">Número da reserva</label>
-            <input type="number" class="form-control" name="reserva" placeholder="Ex: 1" required>
-        </div>
+    <div id="mensagem-reserva" class="alert alert-info hide"></div>
 
-        <div class="btn-group">
-            <button type="submit" class="btn btn-primary">Fazer check-out</button>
-        </div>
-    </form>
+    <style>
+        td {
+            width: 200px
+        }
+
+        .hide {
+            display: none;
+        }
+
+    </style>
 
     @isset($reservation)
-        <div class="card">
+        <div id="detalhes-reserva" class="card">
             <div class="card-header">
-                <h3>Pagamento</h3>
+                <h3>Totais</h3>
             </div>
             <div class="card-body">
-                <div id="paypal-button-container"></div>
+                <table>
+                    <tbody>
+                        <tr>
+                            <td><strong>Reserva</strong></td>
+                            <td>{{ $reservation->id }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Check-in</strong></td>
+                            <td>{{ date_format(date_create($reservation->data_checkin), 'd-m-Y H:i:s') }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Check-out</strong></td>
+                            <td>{{ $reservation->data_checkout->format('d-m-Y H:i:s') }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Dias da reserva</strong></td>
+                            <td>{{ $reservation->dias }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Total</strong></td>
+                            <td>R$ {{ $reservation->total_reserva }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Status</strong></td>
+                            <td>{{ $reservation->status }}</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
         @php
-
         echo '
         <script>
             var valorTotal = ' . $reservation->total_reserva . ';
@@ -65,50 +93,6 @@
         </script>
         ';
         @endphp
-
-        <script>
-            var element = document.getElementById('mensagem-reserva');
-
-            paypal.Buttons({
-                createOrder: function(data, actions) {
-                    // This function sets up the details of the transaction, including the amount and line item details.
-                    return actions.order.create({
-                        purchase_units: [{
-                            amount: {
-                                value: valorTotal
-                            }
-                        }]
-                    });
-                },
-                onError: function(err) {
-                    // Show an error page here, when an error occurs
-                    element.className = 'alert alert-danger';
-                    element.innerHTML =
-                        `<p>Ocorreu um erro no pagamento, por favor, tente novamente</p>`;
-                },
-                onApprove: function(data, actions) {
-                    // This function captures the funds from the transaction.
-                    return actions.order.capture().then(function(details) {
-                        // This function shows a transaction success message to your buyer.
-                        element.className = 'alert alert-success';
-                        element.innerHTML = `<p>Reserva ${codigoReserva} paga com sucesso</p>`;
-                        document.getElementById('paypal-button-container').className = 'hide';
-
-                        fetch(`/api/reservations/checkout/${codigoReserva}`, {
-                                method: 'PATCH'
-                            })
-                            .then(response => {
-                                if (response.status) {
-                                    console.log('Sucesso na atualização da reserva');
-                                } else {
-                                    console.log('Erro ao atualizar reserva');
-                                }
-                            })
-                            .catch(response => console.log('Ocorreu um erro na operação'));
-                    });
-                }
-            }).render("#paypal-button-container");
-
-        </script>
+        @include('reservation.paypal')
     @endisset
 @endsection
