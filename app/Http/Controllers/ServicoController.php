@@ -55,7 +55,7 @@ class ServicoController extends Controller
         $servico = new Servico;
         $servico->descricao = $request->input('descricao');
         $servico->valor_unitario = $request->input('valorUnitario');
-        $servico->status = $request->input('status');
+        $servico->status = strtoupper($request->input('status'));
 
         try {
             $servico->save();
