@@ -74,7 +74,7 @@
                                     <span style="font-size: 1.125rem">R$ {{ $quarto->valor_diaria }}</span>
                                 </h4>
 
-                                <div id={{ $quarto->id }} class="hide">
+                                <div id={{ $quarto->id }} class="form hide">
                                     <h4>Reserva</h4>
                                     <form action="/reservations" method="post">
                                         @csrf
@@ -143,12 +143,27 @@
     </style>
     <script>
         function mostrarCadastro(button, idReserva) {
-            document.getElementById(idReserva).className = 'show';
+            var elems = document.querySelectorAll('.form');
+            
+            elems.forEach(elem => {
+                var isShown = elem.classList.contains('show');
+
+                console.log(isShown);
+                if (isShown) {
+                    elem.classList.remove('show');
+                    elem.classList.add('hide');
+                }
+            });
+            var elem = document.getElementById(idReserva);
+            elem.classList.remove('hide');
+            elem.classList.add('show');
             button.classList.add('hide');
         }
 
         function esconderCadastro(idReserva) {
-            document.getElementById(idReserva).className = 'hide';
+            var elem = document.getElementById(idReserva);
+            elem.classList.remove('show');
+            elem.classList.add('hide');
             document.getElementById(`btn-reserva-${idReserva}`).classList.remove('hide');
         }
 
