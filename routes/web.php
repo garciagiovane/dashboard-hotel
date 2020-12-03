@@ -31,6 +31,7 @@ Route::resource('reservations', ReservationController::class)->except([
 ]);
 Route::resource('quartos', QuartoController::class);
 Route::resource('servicos', ServicoController::class);
+Route::get('/quartos/{codigo}/manutencao/encerrar', [QuartoController::class, 'liberarQuarto']);
 
 Route::get('reservations/checkin', [ReservationController::class, 'showcheckin']);
 Route::patch('reservations/checkin', [ReservationController::class, 'showReservationsCheckin']);

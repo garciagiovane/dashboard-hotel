@@ -6,10 +6,11 @@ use App\Http\Requests\CriacaoQuarto;
 use App\Models\Quarto;
 use App\Models\Servico;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 define('VIEW_CREATE', 'quarto.create');
 define('VIEW_LISTAR', 'quarto.listar');
-
+define('MANUTENCAO_VIEW', 'quarto.manutencao');
 class QuartoController extends Controller
 {
     /**
@@ -17,17 +18,41 @@ class QuartoController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
+        $status = $request->query('status');
+
         try {
-            $quartosAtivos = Quarto::all()->where('status', 'ATIVO');
-            return view(VIEW_LISTAR, [
-                'quartosAtivos' => $quartosAtivos
-            ]);
+            if ($status === null) {
+                $quartosAtivos = Quarto::all()->where('status', 'ATIVO');
+                return view(VIEW_LISTAR, [
+                    'quartosAtivos' => $quartosAtivos
+                ]);
+            }
+
+            if ($status === 'AGUARDANDO_LIMPEZA') {
+                $quartosManutencao = Quarto::all()->where('status', $status);
+                if (sizeof($quartosManutencao) > 0) {
+                    return view(MANUTENCAO_VIEW, [
+                        'quartos' => $quartosManutencao
+                    ]);
+                } else {
+                    return view(MANUTENCAO_VIEW, [
+                        'failures' => ['Não há quartos em manutenção']
+                    ]);
+                }
+            }
         } catch (\Throwable $th) {
-            return view(VIEW_LISTAR, [
-                'failures' => ['Não foi possível listar os quartos, tente novamente mais tarde']
-            ]);
+            $message = 'Não foi possível listar os quartos, tente novamente mais tarde';
+            if ($status === null) {
+                return view(VIEW_LISTAR, [
+                    'failures' => [$message]
+                ]);
+            } else {
+                return view(MANUTENCAO_VIEW, [
+                    'failures' => [$message]
+                ]);
+            }
         }
     }
 
@@ -138,5 +163,35 @@ class QuartoController extends Controller
     public function destroy(Quarto $quarto)
     {
         //
+    }
+
+    public function liberarQuarto($codigo)
+    {
+        $quarto = Quarto::find($codigo);
+        $failures = [];
+
+        if ($quarto == null) {
+            array_push($failures, 'Quarto não encontrado');
+        } else if ($quarto->status != 'AGUARDANDO_LIMPEZA') {
+            array_push($failures, 'Quarto não está disponível para limpeza');
+        }
+
+        if (sizeof($failures) > 0) {
+            return view(MANUTENCAO_VIEW, [
+                'failures' => $failures
+            ]);
+        }
+
+        try {
+            $quarto->liberarQuarto();
+            return view(MANUTENCAO_VIEW, [
+                'message' => 'Quarto liberado com sucesso'
+            ]);
+        } catch (\Throwable $th) {
+            Log::debug($th);
+            return view(MANUTENCAO_VIEW, [
+                'failures' => ['Erro liberar quarto']
+            ]);
+        }
     }
 }

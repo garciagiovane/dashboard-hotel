@@ -10,7 +10,6 @@
                     <li class="list-group-item">{{ $failure }}</li>
                 @endforeach
             </ul>
-
         </div>
     @endisset
     @isset($quartosAtivos)

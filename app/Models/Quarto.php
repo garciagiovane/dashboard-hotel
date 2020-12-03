@@ -14,11 +14,18 @@ class Quarto extends Model
         return $this->belongsToMany('App\Models\Servico', 'servicos_quartos', 'quartos_id', 'servicos_id');
     }
 
-    public static function liberarQuarto($quarto)
+    public function liberarQuarto() {
+        $this->status = 'ATIVO';
+        $this->data_prevista_checkin = null;
+        $this->reservation_id = null;
+        $this->save();
+    }
+
+    public function limparQuarto()
     {
-        $quarto->status = ATIVO;
-        unset($quarto->data_prevista_checkin);
-        unset($quarto->reservation_id);
-        $quarto->save();
+        $this->status = "AGUARDANDO_LIMPEZA";
+        $this->data_prevista_checkin = null;
+        $this->reservation_id = null;
+        $this->save();
     }
 }

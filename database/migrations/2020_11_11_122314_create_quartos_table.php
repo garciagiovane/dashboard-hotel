@@ -17,7 +17,7 @@ class CreateQuartosTable extends Migration
             $table->id();
             $table->timestamps();
             $table->integer('andar');
-            $table->string('status', 10);
+            $table->string('status', 20);
             $table->timestamp('data_prevista_checkin')->nullable();
             $table->decimal('valor_diaria');
             $table->integer('reservation_id')->nullable();

@@ -34,6 +34,7 @@
                             <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
                                 <a class="dropdown-item" href="/quartos">Listar quartos</a>
                                 <a class="dropdown-item" href="/quartos/create">Cadastrar quartos</a>
+                                <a class="dropdown-item" href="/quartos?status=AGUARDANDO_LIMPEZA">Manutenção</a>
                             </div>
                         </li>
                         <li class="nav-item dropdown">

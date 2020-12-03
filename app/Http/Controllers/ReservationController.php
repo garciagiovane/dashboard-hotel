@@ -52,7 +52,7 @@ class ReservationController extends Controller
 
                 if ($diasDiferenca > 1) {
                     Reservation::cancelarReserva($quarto->reservation_id);
-                    Quarto::liberarQuarto($quarto);
+                    $quarto->liberarQuarto();
                 }
             }
 
@@ -377,7 +377,8 @@ class ReservationController extends Controller
         $reservation->total_reserva = $reservation->dias * $quarto->valor_diaria;
 
         $reservation->status = 'AGUARDANDO_PAGAMENTO';
-        Quarto::liberarQuarto($quarto);
+
+        $quarto->limparQuarto();
         $servicos = $reservation->servicos;
         $total = $reservation->total_reserva;
 
